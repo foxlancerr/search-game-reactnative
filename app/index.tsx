@@ -18,47 +18,61 @@ import { useBouncyPress } from "@/src/hooks/useBouncyPress";
 import { BrainSVG } from "@/src/assets/vectors/BrainSVG";
 import { useColors } from "@/hooks/useColors";
 import { MISSIONS } from "@/utils/missions";
+              import {Image} from 'react-native';
+
 
 function StarField() {
-  const stars = useMemo(() => Array.from({ length: 15 }).map(() => ({
-    top: `${Math.random() * 100}%`,
-    left: `${Math.random() * 100}%`,
-    anim: new Animated.Value(Math.random()),
-    delay: Math.random() * 2000,
-  })), []);
+  const stars = useMemo(
+    () =>
+      Array.from({ length: 15 }).map(() => ({
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        anim: new Animated.Value(Math.random()),
+        delay: Math.random() * 2000,
+      })),
+    [],
+  );
 
   useEffect(() => {
-    const animations = stars.map(star => {
+    const animations = stars.map((star) => {
       return Animated.loop(
         Animated.sequence([
-          Animated.timing(star.anim, { toValue: 0, duration: 2000, useNativeDriver: true }),
-          Animated.timing(star.anim, { toValue: 0.6, duration: 2000, useNativeDriver: true })
-        ])
+          Animated.timing(star.anim, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(star.anim, {
+            toValue: 0.6,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ]),
       );
     });
-    
+
     // Start them with staggers
     stars.forEach((star, i) => {
       setTimeout(() => animations[i].start(), star.delay);
     });
-    
-    return () => animations.forEach(a => a.stop());
+
+    return () => animations.forEach((a) => a.stop());
   }, [stars]);
 
   return (
-    <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
+    <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
       {stars.map((star, i) => (
         <Animated.View
           key={i}
           style={{
-            position: 'absolute',
+            position: "absolute",
             top: star.top,
             left: star.left,
             width: 3,
             height: 3,
             borderRadius: 1.5,
-            backgroundColor: '#ffffff',
-            opacity: star.anim
+            backgroundColor: "#ffffff",
+            opacity: star.anim,
           }}
         />
       ))}
@@ -75,7 +89,7 @@ export default function HomeScreen() {
   const mapBtn = useBouncyPress(0.96);
 
   const completedCount = Object.values(progress).filter(
-    (p) => p?.completed
+    (p) => p?.completed,
   ).length;
   const maxStars = MISSIONS.length * 3;
 
@@ -83,7 +97,8 @@ export default function HomeScreen() {
   const bottomPad =
     Platform.OS === "web" ? Math.max(insets.bottom, 34) : insets.bottom;
 
-  const nextMission = MISSIONS.find((m) => !progress[m.id]?.completed) ?? MISSIONS[0];
+  const nextMission =
+    MISSIONS.find((m) => !progress[m.id]?.completed) ?? MISSIONS[0];
 
   const ringScale = useRef(new Animated.Value(1)).current;
   const btnGlowOpacity = useRef(new Animated.Value(0.3)).current;
@@ -91,16 +106,32 @@ export default function HomeScreen() {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(ringScale, { toValue: 1.08, duration: 1500, useNativeDriver: true }),
-        Animated.timing(ringScale, { toValue: 1, duration: 1500, useNativeDriver: true })
-      ])
+        Animated.timing(ringScale, {
+          toValue: 1.08,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(ringScale, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
 
     Animated.loop(
       Animated.sequence([
-        Animated.timing(btnGlowOpacity, { toValue: 0.8, duration: 2000, useNativeDriver: true }),
-        Animated.timing(btnGlowOpacity, { toValue: 0.3, duration: 2000, useNativeDriver: true })
-      ])
+        Animated.timing(btnGlowOpacity, {
+          toValue: 0.8,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(btnGlowOpacity, {
+          toValue: 0.3,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ]),
     ).start();
   }, []);
 
@@ -120,9 +151,16 @@ export default function HomeScreen() {
       >
         <View style={styles.header}>
           <View style={styles.logoWrapper}>
-            <Animated.View style={[styles.logoRing, { transform: [{ scale: ringScale }] }]} />
-            <View style={styles.logoCircle}>
-              <BrainSVG size={72} color="#5b5cf6" />
+            <Animated.View
+              style={[styles.logoRing, { transform: [{ scale: ringScale }] }]}
+            />
+            <View style={{}}>
+              <Image
+              
+                source={require("../assets/images/icon.png")}
+                style={styles.logoCircle }
+              />
+             
             </View>
           </View>
           <Text style={styles.title}>Mind Grow</Text>
@@ -132,28 +170,40 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.statsRow}>
-          <View style={[styles.statPill, { borderColor: "#fbbf2466", backgroundColor: "#fbbf2411" }]}>
+          <View
+            style={[
+              styles.statPill,
+              { borderColor: "#fbbf2466", backgroundColor: "#fbbf2411" },
+            ]}
+          >
             <Ionicons name="star" size={16} color="#fbbf24" />
             <Text style={styles.statPillText}>
               {totalStars}
               <Text style={styles.statPillTextMuted}> / {maxStars}</Text>
             </Text>
           </View>
-          <View style={[styles.statPill, { borderColor: "#00f2ff44", backgroundColor: "#00f2ff0e" }]}>
+          <View
+            style={[
+              styles.statPill,
+              { borderColor: "#00f2ff44", backgroundColor: "#00f2ff0e" },
+            ]}
+          >
             <Ionicons name="flash" size={16} color="#00f2ff" />
             <Text style={styles.statPillText}>
               {totalIQ}
               <Text style={styles.statPillTextMuted}> IQ pts</Text>
             </Text>
           </View>
-          <View style={[styles.statPill, { borderColor: "#10b98144", backgroundColor: "#10b98111" }]}>
+          <View
+            style={[
+              styles.statPill,
+              { borderColor: "#10b98144", backgroundColor: "#10b98111" },
+            ]}
+          >
             <Ionicons name="trophy" size={16} color="#10b981" />
             <Text style={styles.statPillText}>
               {completedCount}
-              <Text style={styles.statPillTextMuted}>
-                {" "}
-                / {MISSIONS.length}
-              </Text>
+              <Text style={styles.statPillTextMuted}> / {MISSIONS.length}</Text>
             </Text>
           </View>
         </View>
@@ -162,10 +212,18 @@ export default function HomeScreen() {
           <Animated.View
             style={[
               styles.playButtonWrap,
-              { transform: [{ scale: playBtn.scaleAnim }] }
+              { transform: [{ scale: playBtn.scaleAnim }] },
             ]}
           >
-            <Animated.View style={[styles.playButtonGlow, { opacity: btnGlowOpacity, shadowColor: nextMission.color || "#6366f1" }]} />
+            <Animated.View
+              style={[
+                styles.playButtonGlow,
+                {
+                  opacity: btnGlowOpacity,
+                  shadowColor: nextMission.color || "#6366f1",
+                },
+              ]}
+            />
             <Pressable
               onPress={() => router.push("/levels")}
               onPressIn={playBtn.onPressIn}
@@ -176,11 +234,17 @@ export default function HomeScreen() {
                 style={[styles.playButton, { borderRadius: colors.radius }]}
               >
                 <View style={styles.playIconWrap}>
-                  <Ionicons name="play" size={26} color={nextMission.color || "#6366f1"} />
+                  <Ionicons
+                    name="play"
+                    size={26}
+                    color={nextMission.color || "#6366f1"}
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.playLabel}>
-                    {completedCount === 0 ? "START MISSION" : "CONTINUE MISSION"}
+                    {completedCount === 0
+                      ? "START MISSION"
+                      : "CONTINUE MISSION"}
                   </Text>
                   <Text style={styles.playSub}>
                     Mission {nextMission.id} · {nextMission.name}
@@ -192,7 +256,10 @@ export default function HomeScreen() {
           </Animated.View>
 
           <Animated.View
-            style={[{ width: "100%" }, { transform: [{ scale: mapBtn.scaleAnim }] }]}
+            style={[
+              { width: "100%" },
+              { transform: [{ scale: mapBtn.scaleAnim }] },
+            ]}
           >
             <Pressable
               onPress={() => router.push("/levels")}
@@ -220,9 +287,9 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View style={[styles.bubble1, { pointerEvents: 'none' }]} />
-      <View style={[styles.bubble2, { pointerEvents: 'none' }]} />
-      <View style={[styles.bubble3, { pointerEvents: 'none' }]} />
+      <View style={[styles.bubble1, { pointerEvents: "none" }]} />
+      <View style={[styles.bubble2, { pointerEvents: "none" }]} />
+      <View style={[styles.bubble3, { pointerEvents: "none" }]} />
     </LinearGradient>
   );
 }
@@ -236,19 +303,19 @@ const styles = StyleSheet.create({
   },
   header: { alignItems: "center", marginTop: 16 },
   logoWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     width: 150,
     height: 150,
     marginBottom: 22,
   },
   logoRing: {
-    position: 'absolute',
+    position: "absolute",
     width: 150,
     height: 150,
     borderRadius: 36,
     borderWidth: 2,
-    borderColor: '#6366f155',
+    borderColor: "#6366f155",
   },
   logoCircle: {
     width: 130,
@@ -257,12 +324,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1e1b4b",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#5b5cf6",
-    shadowColor: "#6366f1",
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 0 },
+    objectFit: "cover",
     elevation: 10,
   },
   title: {
