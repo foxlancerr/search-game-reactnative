@@ -165,7 +165,7 @@ function ChapterHeader({ chapter }: { chapter: Chapter }) {
           color={color}
         />
       </View>
-      <View style={{ flex: 1, borderBottomWidth: 1, borderBottomColor: color + "44", paddingBottom: 6, marginBottom: -6 }}>
+      <View style={{ flex: 1, borderBottomWidth: 1, borderBottomColor: color + "44", paddingBottom: 12, marginBottom: -8, }}>
         <Text style={[styles.chapterNum, { color }]}>
           CHAPTER {chapter.chapterNum}
         </Text>
@@ -302,10 +302,6 @@ const styles = StyleSheet.create({
   },
   glowChapterCount: {
     marginTop: 2,
-    shadowColor: "#00f2ff",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
   },
   subtitle: {
     fontFamily: "Inter_500Medium",
@@ -374,7 +370,7 @@ const styles = StyleSheet.create({
   chapterHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 14,
     marginBottom: 8,
     paddingHorizontal: 4,
   },

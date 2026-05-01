@@ -217,24 +217,6 @@ export default function HomeScreen() {
               <Text style={styles.ghostText}>Reset progress</Text>
             </Pressable>
           ) : null}
-
-          {Platform.OS === "web" ? (
-            <Pressable
-              onPress={() => {
-                const a = document.createElement("a");
-                a.href = "/mind-grow.zip";
-                a.download = "mind-grow.zip";
-                a.click();
-              }}
-              style={({ pressed }) => [
-                styles.downloadButton,
-                { opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Ionicons name="cloud-download-outline" size={14} color="#5b5cf6" />
-              <Text style={styles.downloadText}>Download source code</Text>
-            </Pressable>
-          ) : null}
         </View>
       </View>
 

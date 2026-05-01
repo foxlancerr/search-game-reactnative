@@ -30,28 +30,41 @@ export function KnowledgeCard({
   onClose,
 }: Props) {
   const translateY = useSharedValue(400);
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.8);
-  const glowScale = useSharedValue(1);
+const opacity = useSharedValue(0);
+const scale = useSharedValue(0.9);
+const glowScale = useSharedValue(1);
 
-  useEffect(() => {
-    if (visible) {
-      translateY.value = withSpring(0, { damping: 14, stiffness: 100 });
-      opacity.value = withTiming(1, { duration: 250 });
-      scale.value = withSpring(1, { damping: 12, stiffness: 120 });
-      
-      glowScale.value = withRepeat(
-        withTiming(1.2, { duration: 1000 }),
-        -1,
-        true
-      );
-    } else {
-      translateY.value = withTiming(400, { duration: 250 });
-      opacity.value = withTiming(0, { duration: 200 });
-      scale.value = withTiming(0.8, { duration: 200 });
-    }
-  }, [visible]);
+useEffect(() => {
+  if (visible) {
+    translateY.value = withSpring(0, {
+      damping: 18,       // more damping = less bounce
+      stiffness: 180,    // higher = faster
+    });
 
+    opacity.value = withTiming(1, {
+      duration: 120,     // quicker fade-in
+    });
+
+    scale.value = withSpring(1, {
+      damping: 16,
+      stiffness: 200,
+    });
+
+    glowScale.value = withRepeat(
+      withTiming(1.08, { duration: 600 }), // actually animates now
+      -1,
+      true
+    );
+  } else {
+    translateY.value = withTiming(400, { duration: 120 });
+    opacity.value = withTiming(0, { duration: 80 });
+    scale.value = withTiming(0.9, { duration: 100 });
+  }
+}, [visible]);
+
+
+
+ 
   const animatedBackdrop = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
