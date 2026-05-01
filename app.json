@@ -16,7 +16,13 @@
     "ios": {
       "supportsTablet": false
     },
-    "android": {},
+    "android": {
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.mehfil.ai.wordquest"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
@@ -29,6 +35,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3b5ff7f0-25f1-4320-9f1a-985dace232eb"
+      }
     }
   }
 }
