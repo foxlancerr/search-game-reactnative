@@ -52,7 +52,7 @@ const GridCell = React.memo(function GridCell({
   isFound,
   isHint,
   foundColor,
-  selectionProgress, // 0..1 — how far into the selection is this cell?
+  selectionProgress,
 }: {
   letter: string;
   cellSize: number;
@@ -67,7 +67,6 @@ const GridCell = React.memo(function GridCell({
   const prevSel    = useRef(false);
   const prevFound  = useRef(false);
 
-  // Scale pop when cell enters selection
   useEffect(() => {
     if (isSelected && !prevSel.current) {
       Animated.sequence([
@@ -78,7 +77,6 @@ const GridCell = React.memo(function GridCell({
     prevSel.current = isSelected;
   }, [isSelected]);
 
-  // Glow pulse when word found
   useEffect(() => {
     if (isFound && !prevFound.current) {
       Animated.sequence([
@@ -101,7 +99,6 @@ const GridCell = React.memo(function GridCell({
         { transform: [{ scale: scaleAnim }] },
       ]}
     >
-      {/* Base tile */}
       <View
         style={[
           styles.cellBase,
@@ -116,10 +113,8 @@ const GridCell = React.memo(function GridCell({
           },
         ]}
       >
-        {/* Inner bevel highlight (only on inactive cells) */}
         {!active && <View style={styles.bevel} />}
 
-        {/* Glow flash on found */}
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
@@ -132,14 +127,12 @@ const GridCell = React.memo(function GridCell({
           ]}
         />
 
-        {/* Letter */}
         <Text
           style={[
             styles.letter,
             {
               fontSize,
               color: active ? "#ffffff" : "rgba(180, 200, 225, 0.85)",
-              // subtle shadow on active for depth
               textShadowColor: isSelected ? NEON : isFound ? (foundColor ?? "#fff") : "transparent",
               textShadowOffset: { width: 0, height: 0 },
               textShadowRadius: isSelected ? 8 : 4,
@@ -152,6 +145,18 @@ const GridCell = React.memo(function GridCell({
     </Animated.View>
   );
 });
+
+// ─── perpendicular gloss offset helper ────────────────────────────────────────
+// Given two endpoints, returns an offset vector perpendicular to the line,
+// scaled to `amount`. This keeps the specular highlight centered on the pill
+// for horizontal, vertical, and diagonal directions.
+function perpOffset(x1: number, y1: number, x2: number, y2: number, amount: number) {
+  const dx  = x2 - x1;
+  const dy  = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  // Rotate 90° counter-clockwise: (-dy, dx)
+  return { ox: (-dy / len) * amount, oy: (dx / len) * amount };
+}
 
 // ─── Main WordGrid ─────────────────────────────────────────────────────────────
 export function WordGrid({
@@ -173,7 +178,6 @@ export function WordGrid({
     current: null,
   });
 
-  // Shimmer animation on the selection line
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -183,7 +187,7 @@ export function WordGrid({
     return () => loop.stop();
   }, []);
 
-  const cellSize = layoutWidth > 0 ? layoutWidth / grid.size  : 0;
+  const cellSize = layoutWidth > 0 ? layoutWidth / grid.size : 0;
 
   const cellAtLocal = (x: number, y: number): Cell | null => {
     const w = widthRef.current;
@@ -195,7 +199,7 @@ export function WordGrid({
     return { row, col };
   };
 
-  const updateStart = (c: Cell | null) => { stateRef.current.start = c;   setStart(c);   };
+  const updateStart   = (c: Cell | null) => { stateRef.current.start   = c; setStart(c);   };
   const updateCurrent = (c: Cell | null) => { stateRef.current.current = c; setCurrent(c); };
 
   const pan = useMemo(
@@ -248,16 +252,14 @@ export function WordGrid({
     setLayoutWidth(w);
   };
 
-  // SVG center helpers
   const cx = (col: number) => col * cellSize + cellSize / 2;
   const cy = (row: number) => row * cellSize + cellSize / 2;
 
-  // Pill stroke = ~72% of cell, feels snug without clipping corners
   const strokeW = Math.max(cellSize * 0.72, 15);
 
-  const isSelecting   = start !== null;
-  const isSingleCell  = start && current && start.row === current.row && start.col === current.col;
-  const wordLen       = selection.length;
+  const isSelecting  = start !== null;
+  const isSingleCell = start && current && start.row === current.row && start.col === current.col;
+  const wordLen      = selection.length;
 
   return (
     <View
@@ -266,7 +268,6 @@ export function WordGrid({
         { borderRadius: (colors.radius ?? 12) + 8 },
       ]}
     >
-      {/* Outer glow ring when selecting */}
       {isSelecting && (
         <View
           style={[
@@ -278,26 +279,21 @@ export function WordGrid({
       )}
 
       <GestureDetector gesture={pan}>
-        <View
-          onLayout={onLayout}
-          collapsable={false}
-          style={styles.gridInner}
-        >
-          {/* ── SVG LAYER (paths behind letters) ── */}
+        <View onLayout={onLayout} collapsable={false} style={styles.gridInner}>
+
+          {/* ── SVG LAYER ── */}
           {cellSize > 0 && (
             <View style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
               <Svg width={layoutWidth} height={layoutWidth}>
                 <Defs>
-                  {/* Neon gradient for active selection line */}
                   <LinearGradient id="selGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <Stop offset="0%"   stopColor={NEON}     stopOpacity="0.55" />
-                    <Stop offset="50%"  stopColor="#ffffff"  stopOpacity="0.75" />
-                    <Stop offset="100%" stopColor={NEON}     stopOpacity="0.55" />
+                    <Stop offset="0%"   stopColor={NEON}    stopOpacity="0.55" />
+                    <Stop offset="50%"  stopColor="#ffffff" stopOpacity="0.75" />
+                    <Stop offset="100%" stopColor={NEON}    stopOpacity="0.55" />
                   </LinearGradient>
-                  {/* Soft radial for single-cell dot */}
                   <RadialGradient id="dotGrad" cx="50%" cy="50%" r="50%">
-                    <Stop offset="0%"   stopColor="#ffffff"  stopOpacity="0.9" />
-                    <Stop offset="100%" stopColor={NEON}     stopOpacity="0.4" />
+                    <Stop offset="0%"   stopColor="#ffffff" stopOpacity="0.9" />
+                    <Stop offset="100%" stopColor={NEON}    stopOpacity="0.4" />
                   </RadialGradient>
                 </Defs>
 
@@ -306,6 +302,7 @@ export function WordGrid({
                   if (!fw.cells?.length) return null;
                   const first = fw.cells[0];
                   const last  = fw.cells[fw.cells.length - 1];
+
                   if (fw.cells.length === 1) {
                     return (
                       <Circle
@@ -316,26 +313,27 @@ export function WordGrid({
                       />
                     );
                   }
+
+                  const fx1 = cx(first.col), fy1 = cy(first.row);
+                  const fx2 = cx(last.col),  fy2 = cy(last.row);
                   return (
                     <React.Fragment key={`found-${i}`}>
-                      {/* Shadow line for depth */}
+                      {/* Shadow */}
                       <Line
-                        x1={cx(first.col)} y1={cy(first.row) + 2}
-                        x2={cx(last.col)}  y2={cy(last.row)  + 2}
+                        x1={fx1} y1={fy1 + 2} x2={fx2} y2={fy2 + 2}
                         stroke="#000000" strokeOpacity={0.35}
                         strokeWidth={strokeW + 4} strokeLinecap="round"
                       />
-                      {/* Main colored pill */}
+                      {/* Main pill */}
                       <Line
-                        x1={cx(first.col)} y1={cy(first.row)}
-                        x2={cx(last.col)}  y2={cy(last.row)}
+                        x1={fx1} y1={fy1} x2={fx2} y2={fy2}
                         stroke={fw.color} strokeOpacity={0.88}
                         strokeWidth={strokeW} strokeLinecap="round"
                       />
-                      {/* Inner bright highlight — gives 3D pill feel */}
+                      {/* Specular — same center line, just thinner and semi-transparent */}
                       <Line
-                        x1={cx(first.col)} y1={cy(first.row) - strokeW * 0.22}
-                        x2={cx(last.col)}  y2={cy(last.row)  - strokeW * 0.22}
+                        x1={fx1} y1={fy1}
+                        x2={fx2} y2={fy2}
                         stroke="#ffffff" strokeOpacity={0.18}
                         strokeWidth={strokeW * 0.35} strokeLinecap="round"
                       />
@@ -353,55 +351,55 @@ export function WordGrid({
                   />
                 ))}
 
-                {/* ── Active selection: dimmed background overlay on cells ── */}
-                {isSelecting && start && current && !isSingleCell && (
-                  <>
-                    {/* Thick dimmed backdrop — makes the background recede */}
-                    <Line
-                      x1={cx(start.col)} y1={cy(start.row)}
-                      x2={cx(current.col)} y2={cy(current.row)}
-                      stroke="#000000" strokeOpacity={0.28}
-                      strokeWidth={strokeW + 8} strokeLinecap="round"
-                    />
-                    {/* Main neon pill */}
-                    <Line
-                      x1={cx(start.col)} y1={cy(start.row)}
-                      x2={cx(current.col)} y2={cy(current.row)}
-                      stroke="url(#selGrad)"
-                      strokeOpacity={1}
-                      strokeWidth={strokeW}
-                      strokeLinecap="round"
-                    />
-                    {/* Top specular highlight — glassy 3D feel */}
-                    <Line
-                      x1={cx(start.col)} y1={cy(start.row) - strokeW * 0.22}
-                      x2={cx(current.col)} y2={cy(current.row) - strokeW * 0.22}
-                      stroke="#ffffff" strokeOpacity={0.3}
-                      strokeWidth={strokeW * 0.3} strokeLinecap="round"
-                    />
-                    {/* End-cap dots — "connected" visual anchors */}
-                    <Circle
-                      cx={cx(start.col)} cy={cy(start.row)}
-                      r={strokeW / 2 + 2}
-                      stroke={NEON} strokeOpacity={0.6}
-                      strokeWidth={2} fill="none"
-                    />
-                    <Circle
-                      cx={cx(current.col)} cy={cy(current.row)}
-                      r={strokeW / 2 + 2}
-                      stroke={NEON} strokeOpacity={0.9}
-                      strokeWidth={2.5} fill="none"
-                    />
-                    {/* Bright dot at current fingertip */}
-                    <Circle
-                      cx={cx(current.col)} cy={cy(current.row)}
-                      r={strokeW * 0.28}
-                      fill="#ffffff" fillOpacity={0.55}
-                    />
-                  </>
-                )}
+                {/* ── Active selection ── */}
+                {isSelecting && start && current && !isSingleCell && (() => {
+                  const sx1 = cx(start.col),   sy1 = cy(start.row);
+                  const sx2 = cx(current.col), sy2 = cy(current.row);
+                  return (
+                    <>
+                      {/* Backdrop */}
+                      <Line
+                        x1={sx1} y1={sy1} x2={sx2} y2={sy2}
+                        stroke="#000000" strokeOpacity={0.28}
+                        strokeWidth={strokeW + 8} strokeLinecap="round"
+                      />
+                      {/* Main neon pill */}
+                      <Line
+                        x1={sx1} y1={sy1} x2={sx2} y2={sy2}
+                        stroke="url(#selGrad)" strokeOpacity={1}
+                        strokeWidth={strokeW} strokeLinecap="round"
+                      />
+                      {/* Specular — same center line, just thinner and semi-transparent */}
+                      <Line
+                        x1={sx1} y1={sy1}
+                        x2={sx2} y2={sy2}
+                        stroke="#ffffff" strokeOpacity={0.3}
+                        strokeWidth={strokeW * 0.3} strokeLinecap="round"
+                      />
+                      {/* End-cap dots */}
+                      <Circle
+                        cx={sx1} cy={sy1}
+                        r={strokeW / 2 + 2}
+                        stroke={NEON} strokeOpacity={0.6}
+                        strokeWidth={2} fill="none"
+                      />
+                      <Circle
+                        cx={sx2} cy={sy2}
+                        r={strokeW / 2 + 2}
+                        stroke={NEON} strokeOpacity={0.9}
+                        strokeWidth={2.5} fill="none"
+                      />
+                      {/* Fingertip dot */}
+                      <Circle
+                        cx={sx2} cy={sy2}
+                        r={strokeW * 0.28}
+                        fill="#ffffff" fillOpacity={0.55}
+                      />
+                    </>
+                  );
+                })()}
 
-                {/* ── Single cell selection ── */}
+                {/* ── Single cell ── */}
                 {isSelecting && isSingleCell && start && (
                   <>
                     <Circle
@@ -426,16 +424,15 @@ export function WordGrid({
             grid.letters.map((row, r) => (
               <View key={r} style={styles.row}>
                 {row.map((letter, c) => {
-                  const key      = `${r},${c}`;
-                  const isSel    = selSet.has(key);
-                  const isFound  = !!cellColors[key];
-                  const hint     = isHintCell(r, c);
+                  const key     = `${r},${c}`;
+                  const isSel   = selSet.has(key);
+                  const isFound = !!cellColors[key];
+                  const hint    = isHintCell(r, c);
 
-                  // Compute how far this selected cell is along the selection (0..1)
-                  const selIdx   = isSel
+                  const selIdx  = isSel
                     ? selection.findIndex((s) => s.row === r && s.col === c)
                     : -1;
-                  const selProg  = selIdx >= 0 ? selIdx / Math.max(wordLen - 1, 1) : 0;
+                  const selProg = selIdx >= 0 ? selIdx / Math.max(wordLen - 1, 1) : 0;
 
                   return (
                     <GridCell
@@ -453,7 +450,7 @@ export function WordGrid({
               </View>
             ))}
 
-          {/* ── WORD LENGTH COUNTER (appears while selecting) ── */}
+          {/* ── WORD LENGTH COUNTER ── */}
           {isSelecting && wordLen > 1 && (
             <View style={styles.wordCounterWrap} pointerEvents="none">
               <View style={[styles.wordCounter, { borderColor: NEON + "88" }]}>
@@ -540,7 +537,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Word length counter pill
   wordCounterWrap: {
     position: "absolute",
     bottom: 10,

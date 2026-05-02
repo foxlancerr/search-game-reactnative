@@ -28,7 +28,12 @@ import {
   type Cell,
   type GeneratedGrid,
 } from "@/utils/grid";
-import { MISSIONS, colorForIndex, missionWords, type WordCard } from "@/utils/missions";
+import {
+  MISSIONS,
+  colorForIndex,
+  missionWords,
+  type WordCard,
+} from "@/utils/missions";
 import { isMuted, playSound, setMuted } from "@/utils/sounds";
 
 function formatTime(seconds: number) {
@@ -54,13 +59,13 @@ export default function GameScreen() {
 
   const mission = useMemo(
     () => MISSIONS.find((m) => m.id === Number(levelId)) ?? MISSIONS[0],
-    [levelId]
+    [levelId],
   );
 
   const words = useMemo(() => missionWords(mission), [mission]);
 
   const [grid, setGrid] = useState<GeneratedGrid>(() =>
-    generateGrid(words, mission.size)
+    generateGrid(words, mission.size),
   );
   const [found, setFound] = useState<FoundEntry[]>([]);
   const [score, setScore] = useState(0);
@@ -94,7 +99,7 @@ export default function GameScreen() {
 
   const foundWordSet = useMemo(
     () => new Set(found.map((f) => f.word)),
-    [found]
+    [found],
   );
 
   const cellColorMap = useMemo(() => {
@@ -114,7 +119,11 @@ export default function GameScreen() {
   }, [done]);
 
   useEffect(() => {
-    if (foundWordSet.size === words.length && !done) {
+    if (
+      foundWordSet.size === words.length &&
+      !done &&
+      !knowledgeCard.wordCard
+    ) {
       setDone(true);
       const stars = calcStars(seconds, hintsUsed, mission.targetTime);
       recordResult(mission.id, {
@@ -129,7 +138,17 @@ export default function GameScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     }
-  }, [foundWordSet, mission, done, seconds, hintsUsed, score, recordResult, wordsMastered, words.length]);
+  }, [
+    foundWordSet,
+    mission,
+    done,
+    seconds,
+    hintsUsed,
+    score,
+    recordResult,
+    wordsMastered,
+    words.length,
+  ]);
 
   const showFeedback = (text: string, kind: "good" | "bad") => {
     setFeedback({ text, kind });
@@ -141,7 +160,7 @@ export default function GameScreen() {
     const reversed = word.split("").reverse().join("");
     const target = grid.words.find(
       (w) =>
-        (w.word === word || w.word === reversed) && sameCells(w.cells, cells)
+        (w.word === word || w.word === reversed) && sameCells(w.cells, cells),
     );
     if (target && !foundWordSet.has(target.word)) {
       const color = colorForIndex(found.length);
@@ -263,9 +282,17 @@ export default function GameScreen() {
     if (combo > 1) {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(comboScaleAnim, { toValue: 1.15, duration: 400, useNativeDriver: true }),
-          Animated.timing(comboScaleAnim, { toValue: 1, duration: 400, useNativeDriver: true })
-        ])
+          Animated.timing(comboScaleAnim, {
+            toValue: 1.15,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(comboScaleAnim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+        ]),
       ).start();
     } else {
       comboScaleAnim.setValue(1);
@@ -279,7 +306,9 @@ export default function GameScreen() {
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
     >
-      <View style={[styles.header, { paddingTop: topPad + 12, paddingBottom: 16 }]}>
+      <View
+        style={[styles.header, { paddingTop: topPad + 12, paddingBottom: 16 }]}
+      >
         <Pressable
           onPress={() => router.back()}
           style={({ pressed }) => [
@@ -363,7 +392,12 @@ export default function GameScreen() {
           bgTint="#a855f715"
         />
         <View style={styles.divider} />
-        <Animated.View style={[styles.statBoxWrap, { transform: [{ scale: comboScaleAnim }] }]}>
+        <Animated.View
+          style={[
+            styles.statBoxWrap,
+            { transform: [{ scale: comboScaleAnim }] },
+          ]}
+        >
           <Stat
             label="Combo"
             value={`×${Math.max(1, combo)}`}
@@ -390,7 +424,12 @@ export default function GameScreen() {
           ]}
         >
           {progressPct > 0 && (
-            <View style={[styles.progressGlowEdge, { backgroundColor: mission.color }]} />
+            <View
+              style={[
+                styles.progressGlowEdge,
+                { backgroundColor: mission.color },
+              ]}
+            />
           )}
         </View>
       </View>
@@ -411,7 +450,7 @@ export default function GameScreen() {
               {
                 backgroundColor:
                   feedback.kind === "good" ? "#10b981" : "#ef4444",
-                pointerEvents: 'none'
+                pointerEvents: "none",
               },
             ]}
           >
@@ -429,7 +468,10 @@ export default function GameScreen() {
           <View
             style={[
               styles.findCount,
-              { backgroundColor: mission.color + "22", borderColor: mission.color },
+              {
+                backgroundColor: mission.color + "22",
+                borderColor: mission.color,
+              },
             ]}
           >
             <Text style={[styles.findCountText, { color: mission.color }]}>
@@ -455,9 +497,12 @@ export default function GameScreen() {
           card={knowledgeCard.wordCard.card}
           color={knowledgeCard.color}
           iqGained={knowledgeCard.iqGained}
-          onClose={() =>
-            setKnowledgeCard((prev) => ({ ...prev, visible: false }))
-          }
+          onClose={() => {
+            setKnowledgeCard((prev) => ({ ...prev, visible: false }));
+            if (foundWordSet.size === words.length) {
+              setDone(true);
+            }
+          }}
         />
       )}
 
@@ -468,7 +513,12 @@ export default function GameScreen() {
             colors={[mission.color, mission.colorEnd]}
             style={styles.modalCard}
           >
-            <View style={[styles.celebrateBadge, { backgroundColor: mission.colorEnd + "44" }]}>
+            <View
+              style={[
+                styles.celebrateBadge,
+                { backgroundColor: mission.colorEnd + "44" },
+              ]}
+            >
               <View style={styles.celebrateInner}>
                 <Ionicons name="trophy" size={40} color={mission.color} />
               </View>
@@ -476,7 +526,7 @@ export default function GameScreen() {
             <Text style={styles.modalTitle}>Mission Complete!</Text>
             <Text style={styles.modalSub}>{mission.name}</Text>
             {combo > 2 && (
-               <Text style={styles.comboSubText}>Max Combo: {combo}🔥</Text>
+              <Text style={styles.comboSubText}>Max Combo: {combo}🔥</Text>
             )}
 
             <View style={styles.iqEarnedRow}>
@@ -647,7 +697,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#1e293b",
   },
-  progressFill: { height: "100%", borderRadius: 999, flexDirection: "row", justifyContent: "flex-end" },
+  progressFill: {
+    height: "100%",
+    borderRadius: 999,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
   progressGlowEdge: {
     width: 10,
     height: 10,
