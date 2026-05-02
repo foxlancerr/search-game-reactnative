@@ -22,7 +22,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.INTERNET"
       ],
-      "package": "com.mehfil.ai.wordquest"
+      "package": "com.mehfil.ai.wordquest",
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/images/icon.png"
