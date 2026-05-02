@@ -22,8 +22,7 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.INTERNET"
       ],
-      "package": "com.mehfil.ai.wordquest",
-      "versionCode": 6
+      "package": "com.mehfil.ai.wordquest"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
@@ -32,7 +31,8 @@
       "expo-router",
       "expo-font",
       "expo-web-browser",
-      "expo-audio"
+      "expo-audio",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
